@@ -4,15 +4,11 @@ import chalk from "chalk";
 import os from "os";
 
 async function server(directory = ".", options = {}) {
-  const {
-    port = 8080,
-    host = "0.0.0.0",
-    open = false,
-  } = options;
+  const { port = 8080, host = "0.0.0.0", open = false } = options;
 
   const app = express();
   const rootDir = path.resolve(process.cwd(), directory);
-  
+
   // 静态文件服务
   app.use(express.static(rootDir));
 
@@ -21,7 +17,7 @@ async function server(directory = ".", options = {}) {
       const portNumber = parseInt(port, 10);
       const server = app.listen(portNumber, host, () => {
         const localIP = getLocalIP();
-        const localAddress = `http://localhost:${portNumber}`;
+        const localAddress = `http://127.0.0.1:${portNumber}`;
         const networkAddress = `http://${localIP}:${portNumber}`;
 
         console.log(`
@@ -31,7 +27,7 @@ ${chalk.bold("Static file server running at:")}
 `);
 
         if (open) {
-          import("open").then(module => module.default(localAddress));
+          import("open").then((module) => module.default(localAddress));
         }
 
         resolve(server);
