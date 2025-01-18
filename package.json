@@ -5,7 +5,7 @@
   "main": "bin/index.js",
   "type": "module",
   "bin": {
-    "yin-cli": "bin/index.js"
+    "ying-cli": "bin/index.js"
   },
   "files": [
     "bin",
@@ -16,7 +16,9 @@
     "cli",
     "vue",
     "template",
-    "scaffold"
+    "scaffold",
+    "http",
+    "server"
   ],
   "repository": {
     "type": "git",

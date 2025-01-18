@@ -1,4 +1,4 @@
-# Yin CLI
+# Ying CLI
 
 一个简单而强大的项目脚手架工具，帮助你快速创建项目模板和启动本地开发服务器。
 
@@ -15,10 +15,10 @@
 
 ```bash
 # 全局安装
-npm install -g yin-cli
+npm install -g ying-cli
 
 # 或者使用 yarn
-yarn global add yin-cli
+yarn global add ying-cli
 ```
 
 ## 使用方法
@@ -26,7 +26,7 @@ yarn global add yin-cli
 ### 创建新项目
 
 ```bash
-yin-cli create <project-name>
+ying-cli create <project-name>
 ```
 
 #### 参数说明
@@ -38,16 +38,16 @@ yin-cli create <project-name>
 
 ```bash
 # 创建新项目
-yin-cli create my-project
+ying-cli create my-project
 
 # 强制覆盖已存在的项目
-yin-cli create my-project -f
+ying-cli create my-project -f
 ```
 
 ### 启动开发服务器
 
 ```bash
-yin-cli server [directory]
+ying-cli server [directory]
 ```
 
 #### 参数说明
@@ -60,13 +60,13 @@ yin-cli server [directory]
 
 ```bash
 # 在当前目录启动服务器
-yin-cli server
+ying-cli server
 
 # 指定端口和目录
-yin-cli server ./dist -p 3000
+ying-cli server ./dist -p 3000
 
 # 启动服务器并自动打开浏览器
-yin-cli server -o
+ying-cli server -o
 ```
 
 ## 可用模板
@@ -79,7 +79,7 @@ yin-cli server -o
 ## 项目结构
 
 ```
-yin-cli/
+ying-cli/
 ├── bin/              # CLI 入口文件
 ├── src/              # 源代码
 │   ├── config/       # 配置文件
