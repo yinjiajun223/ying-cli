@@ -2,8 +2,11 @@
   "name": "ying-cli",
   "version": "1.1.1",
   "description": "影的脚手架工具集",
-  "git": "https://github.com/yinjiajun223/ying-cli.git",
   "main": "bin/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yinjiajun223/ying-cli.git"
+  },
   "type": "module",
   "bin": {
     "yin-cli": "bin/index.js"
