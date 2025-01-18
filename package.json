@@ -3,13 +3,24 @@
   "version": "1.1.2",
   "description": "影的脚手架工具集",
   "main": "bin/index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yinjiajun223/ying-cli.git"
-  },
   "type": "module",
   "bin": {
     "yin-cli": "bin/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "keywords": [
+    "cli",
+    "vue",
+    "template",
+    "scaffold"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yinjiajun223/ying-cli.git"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,9 +31,13 @@
     "chalk": "^5.4.1",
     "commander": "^13.0.0",
     "execa": "^9.5.2",
+    "express": "^4.21.2",
     "fs-extra": "^11.3.0",
     "inquirer": "^12.3.2",
     "ora": "^8.1.1",
     "simple-git": "^3.27.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

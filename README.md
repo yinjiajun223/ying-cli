@@ -1,6 +1,6 @@
 # Yin CLI
 
-一个简单而强大的项目脚手架工具，帮助你快速创建项目模板。
+一个简单而强大的项目脚手架工具，帮助你快速创建项目模板和启动本地开发服务器。
 
 ## 特性
 
@@ -8,6 +8,7 @@
 - 📦 支持多种项目模板
 - 🔄 自动安装依赖
 - 💪 支持强制覆盖已存在的项目
+- 🌐 内置静态文件服务器
 - 🎨 友好的命令行界面
 
 ## 安装
@@ -28,12 +29,12 @@ yarn global add yin-cli
 yin-cli create <project-name>
 ```
 
-### 参数说明
+#### 参数说明
 
 - `project-name`: 项目名称（必填）
 - `-f, --force`: 如果目标目录已存在，强制覆盖
 
-### 示例
+#### 示例
 
 ```bash
 # 创建新项目
@@ -41,6 +42,31 @@ yin-cli create my-project
 
 # 强制覆盖已存在的项目
 yin-cli create my-project -f
+```
+
+### 启动开发服务器
+
+```bash
+yin-cli server [directory]
+```
+
+#### 参数说明
+
+- `directory`: 要服务的目录（可选，默认为当前目录）
+- `-p, --port`: 指定端口号（默认：8080）
+- `-o, --open`: 自动打开浏览器
+
+#### 示例
+
+```bash
+# 在当前目录启动服务器
+yin-cli server
+
+# 指定端口和目录
+yin-cli server ./dist -p 3000
+
+# 启动服务器并自动打开浏览器
+yin-cli server -o
 ```
 
 ## 可用模板
@@ -76,12 +102,12 @@ npm link
 
 ## 依赖项
 
-- chalk: 命令行美化工具
 - commander: 命令行工具
-- inquirer: 交互式命令行工具
-- ora: 命令行 loading 效果
-- fs-extra: 文件系统操作工具
-- simple-git: Git 操作工具
+- chalk: 命令行美化
+- inquirer: 交互式命令行
+- ora: 加载动画
+- fs-extra: 文件操作
+- express: 静态服务器
 
 ## 许可证
 
