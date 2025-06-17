@@ -5,12 +5,10 @@ import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
 import simpleGit from "simple-git";
-import { promises as fsPromises } from "fs";
 
 async function create(projectName, options) {
   const syncTemplate = ora("创建项目中...");
   const { name, repo } = await required(projectName);
-  console.log("name,repo", name, repo);
   try {
     syncTemplate.start();
 
