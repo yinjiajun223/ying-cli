@@ -77,34 +77,36 @@ function formatHostEntry(ip, hostname) {
 async function listHosts() {
   const spinner = ora("读取host配置中...").start();
 
-  try {
-    const content = await readHostsFile();
-    const { entries } = parseHostsContent(content);
+  setTimeout(async () => {
+    try {
+      const content = await readHostsFile();
+      const { entries } = parseHostsContent(content);
 
-    spinner.succeed(chalk.green("读取host配置成功"));
+      spinner.succeed(chalk.green("读取host配置成功"));
 
-    if (entries.length === 0) {
-      console.log(chalk.yellow("当前没有配置任何host条目"));
-      return;
+      if (entries.length === 0) {
+        console.log(chalk.yellow("当前没有配置任何host条目"));
+        return;
+      }
+
+      console.log(chalk.cyan.bold("\n当前host配置列表："));
+      console.log(chalk.gray("=".repeat(50)));
+
+      entries.forEach((entry, index) => {
+        console.log(
+          chalk.white(`${(index + 1).toString().padStart(2)}.`) +
+            chalk.green(` ${entry.ip.padEnd(15)}`) +
+            chalk.blue(` → ${entry.hostname}`)
+        );
+      });
+
+      console.log(chalk.gray("=".repeat(50)));
+      console.log(chalk.yellow(`共 ${entries.length} 条记录`));
+    } catch (error) {
+      spinner.fail(chalk.red(`读取host配置失败: ${error.message}`));
+      throw error;
     }
-
-    console.log(chalk.cyan.bold("\n当前host配置列表："));
-    console.log(chalk.gray("=".repeat(50)));
-
-    entries.forEach((entry, index) => {
-      console.log(
-        chalk.white(`${(index + 1).toString().padStart(2)}.`) +
-          chalk.green(` ${entry.ip.padEnd(15)}`) +
-          chalk.blue(` → ${entry.hostname}`)
-      );
-    });
-
-    console.log(chalk.gray("=".repeat(50)));
-    console.log(chalk.yellow(`共 ${entries.length} 条记录`));
-  } catch (error) {
-    spinner.fail(chalk.red(`读取host配置失败: ${error.message}`));
-    throw error;
-  }
+  }, 500);
 }
 
 // 创建模板配置
