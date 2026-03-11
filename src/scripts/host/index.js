@@ -12,6 +12,9 @@ const HOSTS_PATH = path.join(
   "hosts"
 );
 
+const MANAGED_COMMENT_PREFIX = "# ying-cli:";
+const LEGACY_MANAGED_COMMENT_PREFIX = "# 由ying-cli添加 -";
+
 // 读取host文件
 async function readHostsFile() {
   try {
@@ -71,6 +74,34 @@ function parseHostsContent(content) {
 // 格式化host条目为字符串
 function formatHostEntry(ip, hostname) {
   return `${ip.padEnd(15)} ${hostname}`;
+}
+
+function formatManagedComment(hostname) {
+  return `${MANAGED_COMMENT_PREFIX} ${hostname} - ${new Date().toLocaleString()}`;
+}
+
+function findManagedCommentIndex(lines, entryIndex, hostname) {
+  const commentIndex = entryIndex - 1;
+
+  if (commentIndex < 0) {
+    return -1;
+  }
+
+  const commentLine = lines[commentIndex]?.trim();
+
+  if (!commentLine?.startsWith("#")) {
+    return -1;
+  }
+
+  if (commentLine.startsWith(`${MANAGED_COMMENT_PREFIX} ${hostname} - `)) {
+    return commentIndex;
+  }
+
+  if (commentLine.startsWith(LEGACY_MANAGED_COMMENT_PREFIX)) {
+    return commentIndex;
+  }
+
+  return -1;
 }
 
 // 列出当前host配置
@@ -255,7 +286,7 @@ async function setHost(options) {
     } else {
       // 添加新条目
       const newLines = [...originalLines];
-      newLines.push(`# 由ying-cli添加 - ${new Date().toLocaleString()}`);
+      newLines.push(formatManagedComment(hostname));
       newLines.push(formatHostEntry(ip, hostname));
 
       await writeHostsFile(newLines.join("\n"));
@@ -315,7 +346,7 @@ async function deleteHost(options) {
         type: "confirm",
         name: "confirm",
         message: `确认要删除 ${hostname} 吗？`,
-        default: false,
+        default: true,
       },
     ]);
 
@@ -328,6 +359,19 @@ async function deleteHost(options) {
 
     // 删除对应的行
     const linesToDelete = new Set(targetEntries.map((entry) => entry.index));
+
+    targetEntries.forEach((entry) => {
+      const commentIndex = findManagedCommentIndex(
+        originalLines,
+        entry.index,
+        entry.hostname
+      );
+
+      if (commentIndex !== -1) {
+        linesToDelete.add(commentIndex);
+      }
+    });
+
     const newLines = originalLines.filter(
       (_, index) => !linesToDelete.has(index)
     );

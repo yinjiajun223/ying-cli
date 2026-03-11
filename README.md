@@ -21,12 +21,20 @@ npm install -g ying-cli
 yarn global add ying-cli
 ```
 
+安装完成后可使用以下两个命令，效果完全一致：
+
+- `ying-cli`
+- `y`
+
 ## 使用方法
+
+以下示例默认同时支持 `ying-cli` 和 `y` 两种调用方式。
 
 ### 创建新项目
 
 ```bash
 ying-cli create <project-name>
+y create <project-name>
 ```
 
 #### 参数说明
@@ -39,15 +47,18 @@ ying-cli create <project-name>
 ```bash
 # 创建新项目
 ying-cli create my-project
+y create my-project
 
 # 强制覆盖已存在的项目
 ying-cli create my-project -f
+y create my-project -f
 ```
 
 ### 启动开发服务器
 
 ```bash
 ying-cli server [directory]
+y server [directory]
 ```
 
 #### 参数说明
@@ -61,12 +72,15 @@ ying-cli server [directory]
 ```bash
 # 在当前目录启动服务器
 ying-cli server
+y server
 
 # 指定端口和目录
 ying-cli server ./dist -p 3000
+y server ./dist -p 3000
 
 # 启动服务器并自动打开浏览器
 ying-cli server -o
+y server -o
 ```
 
 ### 3. Host文件管理 (Host)
@@ -76,6 +90,8 @@ ying-cli server -o
 # 查看当前host配置列表
 ying-cli host -l
 ying-cli host --list
+y host -l
+y host --list
 ```
 
 #### 选择默认配置模板
@@ -83,6 +99,8 @@ ying-cli host --list
 # 选择并应用配置模板
 ying-cli host -c
 ying-cli host --create
+y host -c
+y host --create
 ```
 
 内置模板包含：
@@ -98,6 +116,8 @@ ying-cli host --create
 # 设置host映射 (注意使用引号)
 ying-cli host -s "example.com 127.0.0.1"
 ying-cli host --set "test.local 192.168.1.100"
+y host -s "example.com 127.0.0.1"
+y host --set "test.local 192.168.1.100"
 ```
 
 #### 删除指定host
@@ -105,7 +125,15 @@ ying-cli host --set "test.local 192.168.1.100"
 # 删除指定的host条目
 ying-cli host -d example.com
 ying-cli host --delete test.local
+y host -d example.com
+y host --delete test.local
 ```
+
+#### Host备注说明
+
+- 通过 `set` 新增的条目会自动写入一行 `ying-cli` 管理备注，备注中包含 hostname 和操作时间。
+- 删除 host 时，如果目标条目上一行是 `ying-cli` 自动生成的备注，也会一并删除。
+- 旧版本生成的 `# 由ying-cli添加 - ...` 备注同样兼容删除。
 
 ## Host管理功能特性
 
@@ -114,7 +142,7 @@ ying-cli host --delete test.local
 - ✅ **安全操作**: 所有修改操作都有确认提示
 - ✅ **智能解析**: 自动解析和格式化host文件
 - ✅ **重复检测**: 自动检测重复条目，提供更新选项
-- ✅ **备注支持**: 自动添加操作备注和时间戳
+- ✅ **备注支持**: 自动添加带 hostname 的操作备注，并在删除时同步清理
 - ✅ **模板系统**: 内置常用配置模板
 - ✅ **交互体验**: 美观的命令行界面和进度提示
 
@@ -133,22 +161,26 @@ ying-cli host --delete test.local
 ```bash
 # 查看当前host配置
 ying-cli host -l
+y host -l
 
 # 添加本地开发域名
 ying-cli host -s "api.dev.local 127.0.0.1"
+y host -s "api.dev.local 127.0.0.1"
 
 # 应用开发环境模板
 ying-cli host -c
+y host -c
 
 # 删除不需要的host
 ying-cli host -d old.domain.com
+y host -d old.domain.com
 ```
 
 ## 版本信息
 
-使用 `ying-cli --version` 查看当前版本。
+使用 `ying-cli --version` 或 `y --version` 查看当前版本。
 
-使用 `ying-cli --help` 查看所有可用命令。
+使用 `ying-cli --help` 或 `y --help` 查看所有可用命令。
 
 ## 可用模板
 
