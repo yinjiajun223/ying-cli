@@ -4,7 +4,6 @@ import inquirer from "inquirer";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-import { DEFAULT_TEMPLATES } from "../../config/constant.js";
 
 // Windows host文件路径
 const HOSTS_PATH = path.join(
@@ -138,74 +137,6 @@ async function listHosts() {
       throw error;
     }
   }, 500);
-}
-
-// 创建模板配置
-async function createFromTemplate() {
-  const spinner = ora("加载模板配置...").start();
-
-  try {
-    spinner.succeed(chalk.green("模板加载完成"));
-
-    const { template } = await inquirer.prompt([
-      {
-        type: "list",
-        name: "template",
-        message: "请选择要应用的配置模板：",
-        choices: DEFAULT_TEMPLATES.map((template, index) => ({
-          name: `${template.name} (${template.hostname} ${template.ip})`,
-          value: index,
-        })),
-      },
-    ]);
-
-    const selectedTemplate = DEFAULT_TEMPLATES[template];
-
-    console.log(
-      chalk.cyan.bold(`\n将要添加的配置 - ${selectedTemplate.name}：`)
-    );
-
-    console.log(
-      chalk.green(` ${selectedTemplate.ip.padEnd(15)}`) +
-        chalk.blue(` → ${selectedTemplate.hostname}`)
-    );
-
-    const { confirm } = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "confirm",
-        message: "确认要添加这些配置吗？",
-        default: true,
-      },
-    ]);
-
-    if (!confirm) {
-      console.log(chalk.yellow("操作已取消"));
-      return;
-    }
-
-    const applySpinner = ora("应用模板配置中...").start();
-
-    const content = await readHostsFile();
-    const { originalLines } = parseHostsContent(content);
-
-    // 添加模板注释和条目
-    const newLines = [...originalLines];
-    // newLines.push("", `# ${selectedTemplate.name} - 由ying-cli自动添加`);
-
-    newLines.push(
-      formatHostEntry(selectedTemplate.ip, selectedTemplate.hostname)
-    );
-
-    await writeHostsFile(newLines.join("\n"));
-
-    applySpinner.succeed(
-      chalk.green(`模板"${selectedTemplate.name}"应用成功！`)
-    );
-  } catch (error) {
-    spinner.fail(chalk.red(`创建模板配置失败: ${error.message}`));
-    throw error;
-  }
 }
 
 // 设置host条目
@@ -391,9 +322,6 @@ async function host(action, options = {}) {
     switch (action) {
       case "list":
         await listHosts();
-        break;
-      case "create":
-        await createFromTemplate();
         break;
       case "set":
         await setHost(options);

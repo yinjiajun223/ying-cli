@@ -5,7 +5,6 @@ import path from "path"; // 命令行交互工具
 import { program } from "commander"; // 引入commander
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import create from "../src/scripts/create/index.js";
 import host from "../src/scripts/host/index.js";
 import ports from "../src/scripts/ports/index.js";
 
@@ -22,26 +21,16 @@ program
   .description(chalk.greenBright(pkg.description))
   .version(pkg.version);
 
-// 定义 create 命令
-program
-  .command("create [projectName]") // 配置命令的名字和参数
-  .description(chalk.greenBright("创建一个项目")) // 命令对应的描述
-  .option("-f, --force", chalk.greenBright("如果文件存在就强行覆盖"))
-  .action(create);
-
 // 定义 host 命令
 program
   .command("host")
   .option("-l, --list", "查看当前host配置")
-  .option("-c, --create", "选择默认配置模板")
   .option("-s, --set <hostname> <ip>", "设置host和ip")
   .option("-d, --delete <hostname>", "删除指定host")
-  .description(chalk.greenBright(chalk.bold("本地host配置管理")))
+  .description(chalk.greenBright(chalk.bold("修改本地host配置")))
   .action((options) => {
     if (options.list) {
       host("list").catch(() => process.exit(1));
-    } else if (options.create) {
-      host("create").catch(() => process.exit(1));
     } else if (options.set) {
       const [hostname, ip] = options.set.split(" ");
       host("set", { hostname, ip }).catch(() => process.exit(1));

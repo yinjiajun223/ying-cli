@@ -1,13 +1,9 @@
-# Ying-CLI 脚手架工具
+# Ying-CLI 命令行工具
 
-一个功能丰富的命令行脚手架工具，包含项目创建、Host文件管理和本地开发端口管理等功能。
+一个命令行工具，包含 Host 修改和本地开发端口管理功能。
 
 ## 特性
 
-- 🚀 快速创建项目
-- 📦 支持多种项目模板
-- 🔄 自动安装依赖
-- 💪 支持强制覆盖已存在的项目
 - 🌐 Host文件管理
 - 🔌 查看并关闭本地开发端口
 - 🎨 友好的命令行界面
@@ -31,31 +27,7 @@ yarn global add ying-cli
 
 以下示例默认同时支持 `ying-cli` 和 `y` 两种调用方式。
 
-### 创建新项目
-
-```bash
-ying-cli create <project-name>
-y create <project-name>
-```
-
-#### 参数说明
-
-- `project-name`: 项目名称（必填）
-- `-f, --force`: 如果目标目录已存在，强制覆盖
-
-#### 示例
-
-```bash
-# 创建新项目
-ying-cli create my-project
-y create my-project
-
-# 强制覆盖已存在的项目
-ying-cli create my-project -f
-y create my-project -f
-```
-
-### Host文件管理
+### 修改Host配置
 
 #### 查看当前所有host配置
 
@@ -65,24 +37,6 @@ ying-cli host --list
 y host -l
 y host --list
 ```
-
-#### 选择默认配置模板
-
-```bash
-ying-cli host -c
-ying-cli host --create
-y host -c
-y host --create
-```
-
-内置模板包含：
-
-- **观微前端测试环境**: `dev-web.cxai.chaoxing.com → 127.0.0.1`
-- **观微后端测试环境**: `dev-service.cxai.chaoxing.com → 192.168.111.179`
-- **能力中心**: `ability-test.chaoxing.com → 127.0.0.1`
-- **AI问数**: `aidigi.libsou.com → 127.0.0.1`
-- **启明星**: `cx.qmx.chaoxing.com → 127.0.0.1`
-- 其他常用开发环境配置
 
 #### 设置host和ip
 
@@ -143,22 +97,13 @@ y ports -k 3000
 
 使用 `ying-cli --help` 或 `y --help` 查看所有可用命令。
 
-## 可用模板
-
-目前支持以下项目模板：
-
-- Vue2 + Ts + Vant + H5
-- Vue2 + Ts + Vant + Appweb
-
 ## 项目结构
 
 ```
 ying-cli/
 ├── bin/              # CLI 入口文件
 ├── src/              # 源代码
-│   ├── config/       # 配置文件
 │   └── scripts/      # 脚本文件
-└── templates/        # 项目模板
 ```
 
 ## 开发
