@@ -1,15 +1,13 @@
 #! /usr/bin/env node
 import chalk from "chalk"; // 命令行美化工具
-import ora from "ora"; // 命令行 loading 效果
-import inquirer from "inquirer"; // 命令行交互工具
 import fs from "fs-extra"; // 传统fs复制文件目录需要加很多判断比较麻烦,fs-extra解决了这个问题
 import path from "path"; // 命令行交互工具
 import { program } from "commander"; // 引入commander
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import create from "../src/scripts/create/index.js";
-import server from "../src/scripts/server/index.js";
 import host from "../src/scripts/host/index.js";
+import ports from "../src/scripts/ports/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,19 +29,6 @@ program
   .option("-f, --force", chalk.greenBright("如果文件存在就强行覆盖"))
   .action(create);
 
-// 定义 server 命令
-program
-  .command("server [directory]")
-  .description(chalk.greenBright(chalk.bold("启动本地静态文件服务器")))
-  .option("-p, --port <port>", `指定${chalk.yellowBright("端口号")}`, "8080")
-  .option("-o, --open", "自动打开浏览器", false)
-  .action((directory, options) => {
-    server(directory, {
-      port: parseInt(options.port),
-      open: options.open,
-    }).catch(() => process.exit(1));
-  });
-
 // 定义 host 命令
 program
   .command("host")
@@ -58,13 +43,29 @@ program
     } else if (options.create) {
       host("create").catch(() => process.exit(1));
     } else if (options.set) {
-      const [hostname, ip] = options.set.split(' ');
+      const [hostname, ip] = options.set.split(" ");
       host("set", { hostname, ip }).catch(() => process.exit(1));
     } else if (options.delete) {
       host("delete", { hostname: options.delete }).catch(() => process.exit(1));
     } else {
       console.log(chalk.yellow("请指定一个操作选项，使用 --help 查看帮助"));
     }
+  });
+
+// 定义 ports 命令
+program
+  .command("ports")
+  .alias("port")
+  .alias("p")
+  .description(chalk.greenBright(chalk.bold("查看并关闭本地开发端口")))
+  .option("-l, --list", "只查看端口")
+  .option("-k, --kill <port>", "关闭指定端口")
+  .option("-y, --yes", "跳过确认")
+  .action((options) => {
+    ports(options).catch((error) => {
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    });
   });
 
 program.parse();

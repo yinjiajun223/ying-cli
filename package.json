@@ -1,6 +1,6 @@
 {
   "name": "ying-cli",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "影的脚手架工具集",
   "main": "bin/index.js",
   "type": "module",
@@ -17,9 +17,7 @@
     "cli",
     "vue",
     "template",
-    "scaffold",
-    "http",
-    "server"
+    "scaffold"
   ],
   "repository": {
     "type": "git",
@@ -34,10 +32,8 @@
     "chalk": "^5.4.1",
     "commander": "^13.0.0",
     "execa": "^9.5.2",
-    "express": "^4.21.2",
     "fs-extra": "^11.3.0",
     "inquirer": "^12.3.2",
-    "open": "^10.1.0",
     "ora": "^8.1.1",
     "simple-git": "^3.27.0"
   },
