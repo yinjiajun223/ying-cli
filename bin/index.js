@@ -50,8 +50,9 @@ program
   .option("-l, --list", "只查看端口")
   .option("-k, --kill <port>", "关闭指定端口")
   .option("-y, --yes", "跳过确认")
+  .option("-Y", "同 -y，跳过确认")
   .action((options) => {
-    ports(options).catch((error) => {
+    ports({ ...options, yes: options.yes || options.Y }).catch((error) => {
       console.error(chalk.red(error.message));
       process.exit(1);
     });

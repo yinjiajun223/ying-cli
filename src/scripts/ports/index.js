@@ -237,20 +237,24 @@ async function killEntries(entries) {
   const pids = [...new Set(entries.map((entry) => entry.pid))];
 
   for (const pid of pids) {
+    const force = os.platform() === "win32";
+
     try {
-      await killPid(pid);
+      await killPid(pid, force);
       console.log(chalk.green(`已关闭 PID ${pid}`));
     } catch (error) {
-      const { force } = await inquirer.prompt([
+      if (force) throw error;
+
+      const { confirmForce } = await inquirer.prompt([
         {
           type: "confirm",
-          name: "force",
+          name: "confirmForce",
           message: `PID ${pid} 关闭失败，是否强制关闭？`,
           default: false,
         },
       ]);
 
-      if (!force) continue;
+      if (!confirmForce) continue;
       await killPid(pid, true);
       console.log(chalk.green(`已强制关闭 PID ${pid}`));
     }
