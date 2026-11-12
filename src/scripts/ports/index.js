@@ -4,8 +4,10 @@ import { promisify } from "util";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
+import { setTimeout as delay } from "timers/promises";
 import chalk from "chalk";
-import inquirer from "inquirer";
+import prompt from "../../utils/prompt.js";
+import formatPortsList, { formatPortsHeading, formatPortChoice, formatPortDetails } from "./display.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -60,10 +62,27 @@ const DEV_NAMES = new Set([
 const DEV_COMMANDS = ["npm run", "pnpm", "yarn", "node_modules", "vite", "next", "nuxt", "webpack", "nodemon", "tsx", "ts-node", "spring-boot", "uvicorn", "flask", "django"];
 
 async function ports(options = {}) {
+  if (options.list && options.kill !== undefined) {
+    throw new Error("-l 和 -k 不能同时使用，请选择查看或关闭端口");
+  }
+  const killAll = options.kill === "all";
+  const port = options.kill === undefined || killAll ? undefined : Number(options.kill);
+  if (port !== undefined && (!Number.isInteger(port) || port < 1 || port > 65535)) {
+    throw new Error("端口必须是 1 到 65535 之间的整数，或使用 all");
+  }
   const entries = await getPortEntries();
 
-  if (options.kill) {
-    await killByPort(Number(options.kill), entries, options);
+  if (killAll) {
+    if (entries.length === 0) {
+      printEntries(entries);
+    } else {
+      await closeSelected(entries, entries, { ...options, yes: false });
+    }
+    return;
+  }
+
+  if (port !== undefined) {
+    await killByPort(port, entries, options);
     return;
   }
 
@@ -72,15 +91,22 @@ async function ports(options = {}) {
     return;
   }
 
-  await chooseAndKill(entries);
+  await chooseAndKill(entries, options);
 }
 
 async function getPortEntries() {
   const entries = os.platform() === "win32" ? await getWindowsEntries() : await getUnixEntries();
+  const seen = new Set();
 
   return entries
-    .filter((entry) => entry.port >= 1024)
+    .filter((entry) => Number.isInteger(entry.port) && entry.port >= 1 && entry.port <= 65535)
     .filter(isDevEntry)
+    .filter((entry) => {
+      const key = `${entry.port}:${entry.pid}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .sort((a, b) => a.port - b.port || a.pid - b.pid);
 }
 
@@ -155,7 +181,13 @@ Get-CimInstance Win32_Process | Where-Object { $pids -contains $_.ProcessId } | 
 }
 
 async function getUnixEntries() {
-  const { stdout } = await execFileAsync("lsof", ["-nP", "-iTCP", "-sTCP:LISTEN"]);
+  let stdout;
+  try {
+    ({ stdout } = await execFileAsync("lsof", ["-nP", "-iTCP", "-sTCP:LISTEN"]));
+  } catch (error) {
+    if (error.code === 1 && !error.stdout?.trim() && !error.stderr?.trim()) return [];
+    throw error;
+  }
 
   return stdout
     .split(/\r?\n/)
@@ -172,93 +204,151 @@ async function getUnixEntries() {
     .filter((entry) => entry.port && entry.pid);
 }
 
-function printEntries(entries) {
-  if (entries.length === 0) {
-    console.log(chalk.yellow("没有发现可关闭的开发端口"));
-    return;
-  }
-
-  console.log(chalk.cyan.bold("\n本地开发端口："));
-  entries.forEach((entry) => {
-    console.log(formatEntry(entry));
-  });
+function printEntries(entries, details = false) {
+  const columns = process.stdout.columns || 100;
+  console.log(formatPortsList(entries, columns));
+  if (details) console.log(formatPortDetails(entries, columns));
 }
 
-async function chooseAndKill(entries) {
+async function chooseAndKill(entries, options) {
   if (entries.length === 0) {
-    console.log(chalk.yellow("没有发现可关闭的开发端口"));
+    printEntries(entries);
     return;
   }
 
-  const { selected } = await inquirer.prompt([
+  console.log(formatPortsHeading(entries, process.stdout.columns || 100));
+  const { selected } = await prompt([
     {
       type: "checkbox",
       name: "selected",
-      message: "选择要关闭的端口：",
+      message: options.yes
+        ? "选择端口（空格选择，回车关闭；不选直接回车退出）："
+        : "选择端口（空格选择，回车继续；不选直接回车退出）：",
+      pageSize: 12,
       choices: entries.map((entry) => ({
-        name: formatEntry(entry, false),
+        name: formatPortChoice(entry),
         value: entry,
       })),
     },
   ]);
 
-  if (selected.length === 0) return;
-  await killEntries(selected);
+  if (selected.length === 0) {
+    console.log(chalk.dim("未选择端口，已退出"));
+    return;
+  }
+  await closeSelected(selected, entries, options);
 }
 
 async function killByPort(port, entries, options) {
-  if (!Number.isInteger(port)) {
-    throw new Error("端口必须是数字");
-  }
-
   const targets = entries.filter((entry) => entry.port === port);
   if (targets.length === 0) {
     console.log(chalk.yellow(`没有发现可关闭的开发端口: ${port}`));
     return;
   }
 
+  await closeSelected(targets, entries, options);
+}
+
+async function closeSelected(selected, entries, options) {
+  const pids = new Set(selected.map((entry) => entry.pid));
+  const targets = entries.filter((entry) => pids.has(entry.pid));
   if (!options.yes) {
-    printEntries(targets);
-    const { confirm } = await inquirer.prompt([
+    printEntries(targets, true);
+    const ports = [...new Set(targets.map((entry) => entry.port))].join("、");
+    const { confirm } = await prompt([
       {
         type: "confirm",
         name: "confirm",
-        message: `确认关闭端口 ${port} 吗？`,
+        message: options.kill === "all"
+          ? `确认关闭以上全部 ${new Set(targets.map((entry) => entry.port)).size} 个开发端口（${pids.size} 个进程）？`
+          : `确认结束 ${pids.size} 个进程并关闭端口 ${ports}？`,
         default: false,
       },
     ]);
-    if (!confirm) return;
-  }
-
-  await killEntries(targets);
-}
-
-async function killEntries(entries) {
-  const pids = [...new Set(entries.map((entry) => entry.pid))];
-
-  for (const pid of pids) {
-    const force = os.platform() === "win32";
-
-    try {
-      await killPid(pid, force);
-      console.log(chalk.green(`已关闭 PID ${pid}`));
-    } catch (error) {
-      if (force) throw error;
-
-      const { confirmForce } = await inquirer.prompt([
-        {
-          type: "confirm",
-          name: "confirmForce",
-          message: `PID ${pid} 关闭失败，是否强制关闭？`,
-          default: false,
-        },
-      ]);
-
-      if (!confirmForce) continue;
-      await killPid(pid, true);
-      console.log(chalk.green(`已强制关闭 PID ${pid}`));
+    if (!confirm) {
+      console.log(chalk.yellow("操作已取消"));
+      return;
     }
   }
+
+  await killEntries(targets, options);
+}
+
+async function killEntries(entries, options) {
+  const pids = [...new Set(entries.map((entry) => entry.pid))];
+  const failures = [];
+
+  for (const pid of pids) {
+    try {
+      await closeProcess(pid, options);
+    } catch (error) {
+      if (error.name === "ExitPromptError" || error.isTtyError || options.kill !== "all") throw error;
+      failures.push(`PID ${pid}: ${error.message}`);
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(`有 ${failures.length} 个进程未能关闭：\n${failures.join("\n")}`);
+  }
+}
+
+async function closeProcess(pid, options) {
+  let stopped = false;
+  let failure = "进程仍在运行";
+  try {
+    await killPid(pid);
+    stopped = await waitForExit(pid);
+  } catch (error) {
+    stopped = !isProcessRunning(pid);
+    failure = error.message;
+  }
+
+  if (stopped) {
+    console.log(chalk.green(`已关闭 PID ${pid}`));
+    return;
+  }
+
+  let confirmForce = options.yes;
+  if (!confirmForce) {
+    ({ confirmForce } = await prompt([
+      {
+        type: "confirm",
+        name: "confirmForce",
+        message: `PID ${pid} 未退出（${failure}），是否强制关闭？`,
+        default: false,
+      },
+    ]));
+  }
+  if (!confirmForce) {
+    throw new Error(`PID ${pid} 仍在运行，未强制关闭`);
+  }
+  try {
+    await killPid(pid, true);
+  } catch (error) {
+    if (isProcessRunning(pid)) throw error;
+  }
+  if (!(await waitForExit(pid))) {
+    throw new Error(`PID ${pid} 强制关闭后仍在运行`);
+  }
+  console.log(chalk.green(`已强制关闭 PID ${pid}`));
+}
+
+function isProcessRunning(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error.code === "ESRCH") return false;
+    throw error;
+  }
+}
+
+async function waitForExit(pid) {
+  const deadline = Date.now() + 3000;
+  while (isProcessRunning(pid)) {
+    if (Date.now() >= deadline) return false;
+    await delay(100);
+  }
+  return true;
 }
 
 async function killPid(pid, force = false) {
@@ -268,16 +358,6 @@ async function killPid(pid, force = false) {
   }
 
   process.kill(pid, force ? "SIGKILL" : "SIGTERM");
-}
-
-function formatEntry(entry, color = true) {
-  const command = shorten(entry.command || entry.address, 120);
-  const text = `${String(entry.port).padEnd(6)} PID ${String(entry.pid).padEnd(7)} ${entry.name.padEnd(16)} ${command}`;
-  return color ? chalk.white(text) : text;
-}
-
-function shorten(text, maxLength) {
-  return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
 }
 
 function selfTest() {

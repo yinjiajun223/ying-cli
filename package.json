@@ -1,6 +1,6 @@
 {
   "name": "ying-cli",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "影的命令行工具集",
   "main": "bin/index.js",
   "type": "module",
@@ -22,9 +22,6 @@
     "type": "git",
     "url": "https://github.com/yinjiajun223/ying-cli.git"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "yinjiajun",
   "license": "ISC",
   "dependencies": {
@@ -32,7 +29,8 @@
     "commander": "^13.0.0",
     "fs-extra": "^11.3.0",
     "inquirer": "^12.3.2",
-    "ora": "^8.1.1"
+    "ora": "^8.1.1",
+    "string-width": "^7.2.0"
   },
   "engines": {
     "node": ">=18.0.0"
