@@ -1,0 +1,35 @@
+name: Publish to GitHub Packages
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          registry-url: https://npm.pkg.github.com
+          scope: '@yinjiajun223'
+          package-manager-cache: false
+      - name: Set the GitHub Packages name
+        run: npm pkg set 'name=@yinjiajun223/ying-cli'
+      - name: Publish the package
+        run: npm publish --registry=https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify the published package
+        run: |
+          version=$(node -p "require('./package.json').version")
+          npm install --global "@yinjiajun223/ying-cli@$version"
+          test "$(ying-cli --version)" = "$version"
+          test "$(y --version)" = "$version"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
