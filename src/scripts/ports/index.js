@@ -65,10 +65,11 @@ async function ports(options = {}) {
   if (options.list && options.kill !== undefined) {
     throw new Error("-l 和 -k 不能同时使用，请选择查看或关闭端口");
   }
-  const killAll = options.kill === "all";
-  const port = options.kill === undefined || killAll ? undefined : Number(options.kill);
-  if (port !== undefined && (!Number.isInteger(port) || port < 1 || port > 65535)) {
-    throw new Error("端口必须是 1 到 65535 之间的整数，或使用 all");
+  const requested = [].concat(options.kill ?? []);
+  const killAll = requested.length === 1 && requested[0] === "all";
+  const portNumbers = killAll ? [] : requested.map(Number);
+  if (portNumbers.some((port) => !Number.isInteger(port) || port < 1 || port > 65535)) {
+    throw new Error("端口必须是 1 到 65535 之间的整数，all 必须单独使用");
   }
   const entries = await getPortEntries();
 
@@ -76,13 +77,13 @@ async function ports(options = {}) {
     if (entries.length === 0) {
       printEntries(entries);
     } else {
-      await closeSelected(entries, entries, { ...options, yes: false });
+      await closeSelected(entries, entries, { ...options, yes: false, killAll, continueOnFailure: true });
     }
     return;
   }
 
-  if (port !== undefined) {
-    await killByPort(port, entries, options);
+  if (portNumbers.length > 0) {
+    await killByPorts(portNumbers, entries, options);
     return;
   }
 
@@ -239,14 +240,16 @@ async function chooseAndKill(entries, options) {
   await closeSelected(selected, entries, options);
 }
 
-async function killByPort(port, entries, options) {
-  const targets = entries.filter((entry) => entry.port === port);
-  if (targets.length === 0) {
-    console.log(chalk.yellow(`没有发现可关闭的开发端口: ${port}`));
-    return;
+async function killByPorts(ports, entries, options) {
+  const requested = new Set(ports);
+  const targets = entries.filter((entry) => requested.has(entry.port));
+  const matched = new Set(targets.map((entry) => entry.port));
+  for (const port of requested) {
+    if (!matched.has(port)) console.log(chalk.yellow(`没有发现可关闭的开发端口: ${port}`));
   }
+  if (targets.length === 0) return;
 
-  await closeSelected(targets, entries, options);
+  await closeSelected(targets, entries, { ...options, continueOnFailure: requested.size > 1 });
 }
 
 async function closeSelected(selected, entries, options) {
@@ -259,7 +262,7 @@ async function closeSelected(selected, entries, options) {
       {
         type: "confirm",
         name: "confirm",
-        message: options.kill === "all"
+        message: options.killAll
           ? `确认关闭以上全部 ${new Set(targets.map((entry) => entry.port)).size} 个开发端口（${pids.size} 个进程）？`
           : `确认结束 ${pids.size} 个进程并关闭端口 ${ports}？`,
         default: false,
@@ -282,7 +285,7 @@ async function killEntries(entries, options) {
     try {
       await closeProcess(pid, options);
     } catch (error) {
-      if (error.name === "ExitPromptError" || error.isTtyError || options.kill !== "all") throw error;
+      if (error.name === "ExitPromptError" || error.isTtyError || !options.continueOnFailure) throw error;
       failures.push(`PID ${pid}: ${error.message}`);
     }
   }

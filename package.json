@@ -1,6 +1,6 @@
 {
   "name": "ying-cli",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "影的命令行工具集",
   "main": "bin/index.js",
   "type": "module",
@@ -11,7 +11,8 @@
   "files": [
     "bin",
     "src",
-    "README.md"
+    "README.md",
+    "README.en.md"
   ],
   "keywords": [
     "cli",

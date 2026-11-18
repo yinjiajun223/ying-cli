@@ -59,7 +59,7 @@ program
   .alias("p")
   .description(chalk.greenBright(chalk.bold("查看并关闭本地开发端口")))
   .option("-l, --list", "只查看端口")
-  .option("-k, --kill <port|all>", "关闭指定端口，all 确认后关闭全部开发端口")
+  .option("-k, --kill <port...>", "关闭一个或多个指定端口，或单独使用 all 关闭全部开发端口")
   .option("-y, --yes", "跳过确认（-k all 始终需要确认）")
   .option("-Y", "同 -y，跳过确认")
   .action(async (options) => {
